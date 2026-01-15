@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FastBrid">
+    <meta name="theme-color" content="#0a0a0f">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <title>FastBrid</title>
+    <style>
+        /* ═══════════════════════════════════════════════════════════
+           RESET & BASE
+        ═══════════════════════════════════════════════════════════ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #14141f;
+            --bg-card: #1a1a28;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --accent-green: #00d67f;
+            --accent-green-glow: rgba(0, 214, 127, 0.3);
+            --accent-red: #ff4757;
+            --accent-red-glow: rgba(255, 71, 87, 0.3);
+            --accent-blue: #4a9eff;
+            --accent-blue-glow: rgba(74, 158, 255, 0.3);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: var(--safe-area-top) 20px var(--safe-area-bottom);
+            background-image: 
+                radial-gradient(ellipse at 50% 0%, rgba(74, 158, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 214, 127, 0.05) 0%, transparent 40%),
+                radial-gradient(ellipse at 20% 90%, rgba(255, 71, 87, 0.05) 0%, transparent 40%);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           CONTAINER
+        ═══════════════════════════════════════════════════════════ */
+        .container {
+            width: 100%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 32px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           HEADER
+        ═══════════════════════════════════════════════════════════ */
+        .header {
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           STATUS INDICATOR
+        ═══════════════════════════════════════════════════════════ */
+        .status-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 20px 28px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .status-card.connected {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 30px var(--accent-green-glow);
+        }
+
+        .status-card.connecting {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 30px var(--accent-blue-glow);
+        }
+
+        .status-card.error {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 30px var(--accent-red-glow);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.connected {
+            background: var(--accent-green);
+            box-shadow: 0 0 12px var(--accent-green);
+        }
+
+        .status-dot.connecting {
+            background: var(--accent-blue);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.error {
+            background: var(--accent-red);
+        }
+
+        .status-dot.searching {
+            background: var(--accent-blue);
+            animation: searchPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        @keyframes searchPulse {
+            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 var(--accent-blue-glow); }
+            50% { opacity: 0.7; transform: scale(1.1); box-shadow: 0 0 20px 5px var(--accent-blue-glow); }
+        }
+
+        .status-info {
+            flex: 1;
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .status-text {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           BUTTONS
+        ═══════════════════════════════════════════════════════════ */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 20px 24px;
+            border-radius: 14px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Bouton Connecter */
+        .btn-connect {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #357abd 100%);
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-blue-glow);
+        }
+
+        .btn-connect:active:not(:disabled) {
+            box-shadow: 0 2px 10px var(--accent-blue-glow);
+        }
+
+        /* Bouton Débridage */
+        .btn-unlock {
+            background: linear-gradient(135deg, var(--accent-green) 0%, #00b36b 100%);
+            color: #0a0a0f;
+            box-shadow: 0 4px 20px var(--accent-green-glow);
+        }
+
+        .btn-unlock:active:not(:disabled) {
+            box-shadow: 0 2px 10px var(--accent-green-glow);
+        }
+
+        /* Bouton Bridage */
+        .btn-lock {
+            background: linear-gradient(135deg, var(--accent-red) 0%, #cc3a47 100%);
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-red-glow);
+        }
+
+        .btn-lock:active:not(:disabled) {
+            box-shadow: 0 2px 10px var(--accent-red-glow);
+        }
+
+        /* Icônes */
+        .btn-icon {
+            font-size: 1.3rem;
+        }
+
+        /* Bouton masqué */
+        .btn.hidden {
+            display: none;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           TOAST NOTIFICATIONS
+        ═══════════════════════════════════════════════════════════ */
+        .toast {
+            position: fixed;
+            bottom: calc(40px + var(--safe-area-bottom));
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+            max-width: calc(100% - 40px);
+            text-align: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            border-color: var(--accent-green);
+            box-shadow: 0 4px 20px var(--accent-green-glow);
+        }
+
+        .toast.error {
+            border-color: var(--accent-red);
+            box-shadow: 0 4px 20px var(--accent-red-glow);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           LOADING SPINNER
+        ═══════════════════════════════════════════════════════════ */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           FOOTER
+        ═══════════════════════════════════════════════════════════ */
+        .footer {
+            position: fixed;
+            bottom: calc(16px + var(--safe-area-bottom));
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           MODAL BLUEFY
+        ═══════════════════════════════════════════════════════════ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 28px;
+            max-width: 340px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .modal-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-text strong {
+            color: var(--accent-blue);
+        }
+
+        .btn-bluefy {
+            background: linear-gradient(135deg, #007AFF 0%, #0055CC 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+            margin-bottom: 12px;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">FastBrid</h1>
+            <p class="tagline">Segway P100 Controller</p>
+        </header>
+
+        <!-- Status Card -->
+        <div class="status-card" id="statusCard">
+            <div class="status-dot" id="statusDot"></div>
+            <div class="status-info">
+                <div class="status-label">État</div>
+                <div class="status-text" id="statusText">Non connecté</div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-group">
+            <!-- Bouton Connexion -->
+            <button class="btn btn-connect" id="btnConnect">
+                <span class="btn-icon">⚡</span>
+                <span id="btnConnectText">Connecter</span>
+            </button>
+
+            <!-- Bouton Débridage -->
+            <button class="btn btn-unlock" id="btnUnlock" disabled>
+                <span class="btn-icon">🚀</span>
+                Débridage
+            </button>
+
+            <!-- Bouton Bridage -->
+            <button class="btn btn-lock" id="btnLock" disabled>
+                <span class="btn-icon">🔒</span>
+                Bridage
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Modal Bluefy -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-icon">📱</div>
+            <h2 class="modal-title">Safari ne supporte pas le Bluetooth</h2>
+            <p class="modal-text">
+                Apple n'a pas implémenté Web Bluetooth dans Safari.<br><br>
+                Pour utiliser FastBrid, ouvrez cette page dans <strong>Bluefy</strong>, un navigateur iOS qui supporte le Bluetooth.
+            </p>
+            <button class="btn btn-bluefy" onclick="window.location.href='https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055'">
+                <span class="btn-icon">⬇️</span>
+                Télécharger Bluefy
+            </button>
+            <button class="btn btn-secondary" onclick="closeModal()">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">FastBrid v1.0</div>
+
+    <script>
+        /**
+         * ═══════════════════════════════════════════════════════════
+         * FASTBRID - Contrôleur BLE Segway P100
+         * PWA iOS pour le débridage/bridage de trottinette
+         * ═══════════════════════════════════════════════════════════
+         */
+
+        // ─────────────────────────────────────────────────────────────
+        // CONFIGURATION BLE
+        // ─────────────────────────────────────────────────────────────
+        const BLE_CONFIG = {
+            // Préfixe du nom de la trottinette
+            NAME_PREFIX: 'SegWayP100',
+            
+            // Service UUID (Nordic UART Service)
+            SERVICE_UUID: '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
+            
+            // Characteristic pour écriture (TX)
+            CHAR_WRITE_UUID: '6e400002-b5a3-f393-e0a9-e50e24dcca9e',
+            
+            // Characteristic pour notifications (RX) - optionnel
+            CHAR_NOTIFY_UUID: '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
+        };
+
+        // ─────────────────────────────────────────────────────────────
+        // COMMANDES HEX
+        // ─────────────────────────────────────────────────────────────
+        const COMMANDS = {
+            // Commande débridage
+            UNLOCK: '55AB53656757617950313030735F30',
+            
+            // Commande bridage
+            LOCK: '55AB53656757617950313030735F31'
+        };
+
+        // ─────────────────────────────────────────────────────────────
+        // CLÉS LOCALSTORAGE
+        // ─────────────────────────────────────────────────────────────
+        const STORAGE_KEYS = {
+            DEVICE_ID: 'fastbrid_device_id',
+            DEVICE_NAME: 'fastbrid_device_name'
+        };
+
+        // ─────────────────────────────────────────────────────────────
+        // ÉTAT DE L'APPLICATION
+        // ─────────────────────────────────────────────────────────────
+        const state = {
+            device: null,
+            server: null,
+            service: null,
+            writeCharacteristic: null,
+            isConnecting: false,
+            isConnected: false,
+            hasKnownDevice: false,      // Device déjà autorisé précédemment
+            isWatchingAds: false,       // watchAdvertisements actif
+            retryInterval: null,        // Intervalle de retry
+            retryCount: 0               // Compteur de tentatives
+        };
+
+        // Configuration retry
+        const RETRY_CONFIG = {
+            INTERVAL_MS: 3000,          // Tentative toutes les 3 secondes
+            MAX_RETRIES: 100            // Maximum 100 tentatives (5 minutes)
+        };
+
+        // ─────────────────────────────────────────────────────────────
+        // ÉLÉMENTS DOM
+        // ─────────────────────────────────────────────────────────────
+        const dom = {
+            statusCard: document.getElementById('statusCard'),
+            statusDot: document.getElementById('statusDot'),
+            statusText: document.getElementById('statusText'),
+            btnConnect: document.getElementById('btnConnect'),
+            btnConnectText: document.getElementById('btnConnectText'),
+            btnUnlock: document.getElementById('btnUnlock'),
+            btnLock: document.getElementById('btnLock'),
+            toast: document.getElementById('toast'),
+            modalOverlay: document.getElementById('modalOverlay')
+        };
+
+        // ─────────────────────────────────────────────────────────────
+        // UTILITAIRES
+        // ─────────────────────────────────────────────────────────────
+        
+        /**
+         * Convertit une chaîne hexadécimale en ArrayBuffer
+         * @param {string} hex - Chaîne hexadécimale
+         * @returns {ArrayBuffer}
+         */
+        function hexToArrayBuffer(hex) {
+            const bytes = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < hex.length; i += 2) {
+                bytes[i / 2] = Number.parseInt(hex.substr(i, 2), 16);
+            }
+            return bytes.buffer;
+        }
+
+        /**
+         * Affiche une notification toast
+         * @param {string} message - Message à afficher
+         * @param {string} type - Type: 'success' | 'error' | ''
+         */
+        function showToast(message, type = '') {
+            dom.toast.textContent = message;
+            dom.toast.className = 'toast show ' + type;
+            
+            setTimeout(() => {
+                dom.toast.classList.remove('show');
+            }, 3000);
+        }
+
+        /**
+         * Sauvegarde les infos du device dans localStorage
+         * @param {BluetoothDevice} device
+         */
+        function saveDevice(device) {
+            localStorage.setItem(STORAGE_KEYS.DEVICE_ID, device.id);
+            localStorage.setItem(STORAGE_KEYS.DEVICE_NAME, device.name || 'Segway P100');
+        }
+
+        /**
+         * Récupère l'ID du device sauvegardé
+         * @returns {string|null}
+         */
+        function getSavedDeviceId() {
+            return localStorage.getItem(STORAGE_KEYS.DEVICE_ID);
+        }
+
+        /**
+         * Récupère le nom du device sauvegardé
+         * @returns {string|null}
+         */
+        function getSavedDeviceName() {
+            return localStorage.getItem(STORAGE_KEYS.DEVICE_NAME);
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // GESTION DE L'UI
+        // ─────────────────────────────────────────────────────────────
+        
+        /**
+         * Met à jour l'interface selon l'état de connexion
+         * @param {string} status - 'disconnected' | 'connecting' | 'connected' | 'error'
+         * @param {string} message - Message à afficher
+         */
+        function updateUI(status, message) {
+            // Reset des classes
+            dom.statusCard.className = 'status-card';
+            dom.statusDot.className = 'status-dot';
+            
+            switch (status) {
+                case 'disconnected':
+                    dom.statusText.textContent = message || 'Non connecté';
+                    dom.btnConnect.classList.remove('hidden');
+                    dom.btnConnect.disabled = false;
+                    // Afficher "Reconnecter" si device déjà connu
+                    dom.btnConnectText.textContent = state.hasKnownDevice ? '🔄 Reconnecter' : 'Connecter';
+                    dom.btnUnlock.disabled = true;
+                    dom.btnLock.disabled = true;
+                    break;
+                    
+                case 'connecting':
+                    dom.statusCard.classList.add('connecting');
+                    dom.statusDot.classList.add('connecting');
+                    dom.statusText.textContent = message || 'Connexion en cours…';
+                    dom.btnConnect.disabled = true;
+                    dom.btnConnectText.innerHTML = '<span class="spinner"></span>';
+                    dom.btnUnlock.disabled = true;
+                    dom.btnLock.disabled = true;
+                    break;
+                    
+                case 'connected':
+                    dom.statusCard.classList.add('connected');
+                    dom.statusDot.classList.add('connected');
+                    dom.statusText.textContent = message || 'Connecté';
+                    dom.btnConnect.classList.add('hidden');
+                    dom.btnUnlock.disabled = false;
+                    dom.btnLock.disabled = false;
+                    break;
+                    
+                case 'error':
+                    dom.statusCard.classList.add('error');
+                    dom.statusDot.classList.add('error');
+                    dom.statusText.textContent = message || 'Erreur';
+                    dom.btnConnect.classList.remove('hidden');
+                    dom.btnConnect.disabled = false;
+                    dom.btnConnectText.textContent = 'Réessayer';
+                    dom.btnUnlock.disabled = true;
+                    dom.btnLock.disabled = true;
+                    break;
+
+                case 'searching':
+                    dom.statusCard.classList.add('connecting');
+                    dom.statusDot.classList.add('searching');
+                    dom.statusText.textContent = message || 'Recherche automatique…';
+                    dom.btnConnect.classList.remove('hidden');
+                    dom.btnConnect.disabled = false;
+                    dom.btnConnectText.textContent = '⏹ Arrêter';
+                    dom.btnUnlock.disabled = true;
+                    dom.btnLock.disabled = true;
+                    break;
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // DÉTECTION iOS / BLUEFY
+        // ─────────────────────────────────────────────────────────────
+        
+        /**
+         * Détecte si on est sur iOS (iPhone/iPad)
+         * @returns {boolean}
+         */
+        function isIOS() {
+            return /iPhone|iPad|iPod/.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        /**
+         * Détecte si on est dans le navigateur Bluefy
+         * @returns {boolean}
+         */
+        function isBluefy() {
+            return navigator.userAgent.includes('Bluefy');
+        }
+
+        /**
+         * Affiche le modal Bluefy
+         */
+        function showBluefyModal() {
+            dom.modalOverlay.classList.add('show');
+        }
+
+        /**
+         * Ferme le modal
+         */
+        function closeModal() {
+            dom.modalOverlay.classList.remove('show');
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // GESTION BLE
+        // ─────────────────────────────────────────────────────────────
+        
+        /**
+         * Vérifie si Web Bluetooth est disponible
+         * @returns {boolean}
+         */
+        function isWebBluetoothAvailable() {
+            return 'bluetooth' in navigator;
+        }
+
+        /**
+         * Connecte au GATT server d'un device déjà obtenu
+         * @param {BluetoothDevice} device
+         * @returns {Promise<boolean>}
+         */
+        async function connectToDevice(device) {
+            try {
+                console.log('[BLE] Connexion à', device.name || device.id);
+                state.device = device;
+                
+                // Écouter la déconnexion
+                state.device.addEventListener('gattserverdisconnected', onDisconnected);
+                
+                // Connexion au serveur GATT
+                state.server = await state.device.gatt.connect();
+                
+                // Récupération du service
+                state.service = await state.server.getPrimaryService(BLE_CONFIG.SERVICE_UUID);
+                
+                // Récupération de la characteristic d'écriture
+                state.writeCharacteristic = await state.service.getCharacteristic(BLE_CONFIG.CHAR_WRITE_UUID);
+                
+                state.isConnected = true;
+                state.isConnecting = false;
+                
+                // Arrêter toutes les méthodes de retry
+                stopWatchingAdvertisements();
+                stopAutoRetry();
+                
+                const deviceName = device.name || getSavedDeviceName() || 'Segway P100';
+                updateUI('connected', deviceName);
+                
+                return true;
+                
+            } catch (error) {
+                console.error('[BLE] Erreur connexion device:', error);
+                state.isConnected = false;
+                state.isConnecting = false;
+                throw error;
+            }
+        }
+
+        /**
+         * Démarre la surveillance des advertisements BLE pour reconnexion auto
+         * @param {BluetoothDevice} device
+         */
+        async function startWatchingAdvertisements(device) {
+            if (state.isWatchingAds || !device.watchAdvertisements) {
+                console.log('[BLE] watchAdvertisements non disponible ou déjà actif');
+                return;
+            }
+            
+            try {
+                console.log('[BLE] Démarrage watchAdvertisements...');
+                
+                // Écouter quand le device est détecté (à proximité)
+                device.addEventListener('advertisementreceived', async (event) => {
+                    console.log('[BLE] Advertisement reçu !', event.device.name);
+                    
+                    if (!state.isConnected && !state.isConnecting) {
+                        state.isConnecting = true;
+                        updateUI('connecting', 'Reconnexion auto…');
+                        
+                        try {
+                            await connectToDevice(event.device);
+                            showToast('Reconnecté automatiquement !', 'success');
+                        } catch (err) {
+                            console.error('[BLE] Échec reconnexion auto:', err);
+                            state.isConnecting = false;
+                            updateUI('disconnected', getSavedDeviceName() || 'Appuyez pour reconnecter');
+                        }
+                    }
+                });
+                
+                await device.watchAdvertisements();
+                state.isWatchingAds = true;
+                console.log('[BLE] watchAdvertisements actif ✓');
+                
+            } catch (error) {
+                console.error('[BLE] Erreur watchAdvertisements:', error);
+            }
+        }
+
+        /**
+         * Arrête la surveillance des advertisements
+         */
+        function stopWatchingAdvertisements() {
+            if (state.device && state.device.unwatchAdvertisements) {
+                try {
+                    state.device.unwatchAdvertisements();
+                    state.isWatchingAds = false;
+                    console.log('[BLE] watchAdvertisements arrêté');
+                } catch (e) {
+                    console.log('[BLE] unwatchAdvertisements ignoré:', e.message);
+                }
+            }
+        }
+
+        /**
+         * Démarre le retry automatique de reconnexion
+         */
+        function startAutoRetry() {
+            // Arrêter si déjà actif
+            stopAutoRetry();
+            
+            state.retryCount = 0;
+            const deviceName = getSavedDeviceName() || 'Trottinette';
+            
+            console.log('[BLE] 🔄 Démarrage retry automatique (toutes les', RETRY_CONFIG.INTERVAL_MS/1000, 's)');
+            
+            // Afficher l'état de recherche
+            updateUI('searching', deviceName + ' - Recherche...');
+            
+            state.retryInterval = setInterval(async () => {
+                // Vérifier si on doit continuer
+                if (state.isConnected || state.isConnecting) {
+                    console.log('[BLE] Déjà connecté/en cours, arrêt retry');
+                    stopAutoRetry();
+                    return;
+                }
+                
+                // Vérifier le nombre max de tentatives
+                if (state.retryCount >= RETRY_CONFIG.MAX_RETRIES) {
+                    console.log('[BLE] Max retries atteint, arrêt');
+                    stopAutoRetry();
+                    updateUI('disconnected', 'Reconnexion échouée');
+                    showToast('Appuyez pour réessayer', 'error');
+                    return;
+                }
+                
+                state.retryCount++;
+                console.log(`[BLE] Tentative reconnexion #${state.retryCount}...`);
+                
+                // Mettre à jour l'UI avec le compteur
+                updateUI('searching', deviceName + ' - Tentative ' + state.retryCount + '...');
+                
+                // Tenter la reconnexion silencieuse
+                try {
+                    if (navigator.bluetooth.getDevices) {
+                        const devices = await navigator.bluetooth.getDevices();
+                        const savedDeviceId = getSavedDeviceId();
+                        const knownDevice = devices.find(d => d.id === savedDeviceId);
+                        
+                        if (knownDevice) {
+                            state.isConnecting = true;
+                            
+                            await connectToDevice(knownDevice);
+                            
+                            console.log('[BLE] ✅ Reconnexion automatique réussie !');
+                            showToast('Reconnecté automatiquement !', 'success');
+                            stopAutoRetry();
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.log('[BLE] Tentative #' + state.retryCount + ' échouée:', error.message);
+                    state.isConnecting = false;
+                }
+            }, RETRY_CONFIG.INTERVAL_MS);
+        }
+
+        /**
+         * Arrête le retry automatique
+         */
+        function stopAutoRetry() {
+            if (state.retryInterval) {
+                clearInterval(state.retryInterval);
+                state.retryInterval = null;
+                state.retryCount = 0;
+                console.log('[BLE] Retry automatique arrêté');
+            }
+        }
+
+        /**
+         * Tente de se reconnecter à un device précédemment autorisé
+         * @param {boolean} silent - Si true, ne pas afficher de messages d'erreur
+         * @returns {Promise<boolean>} - true si reconnexion réussie
+         */
+        async function tryAutoReconnect(silent = false) {
+            const savedDeviceId = getSavedDeviceId();
+            const savedDeviceName = getSavedDeviceName();
+            
+            if (!savedDeviceId) {
+                console.log('[BLE] Aucun device sauvegardé');
+                return false;
+            }
+            
+            console.log('[BLE] Device sauvegardé:', savedDeviceName, savedDeviceId);
+            state.hasKnownDevice = true;
+            
+            // Vérifier si getDevices est supporté
+            if (!navigator.bluetooth.getDevices) {
+                console.log('[BLE] getDevices() non supporté - affichage bouton reconnecter');
+                updateUI('disconnected', savedDeviceName || 'Appuyez pour reconnecter');
+                return false;
+            }
+            
+            try {
+                if (!silent) {
+                    updateUI('connecting', 'Recherche ' + (savedDeviceName || 'trottinette') + '…');
+                }
+                
+                // Récupérer les devices autorisés
+                const devices = await navigator.bluetooth.getDevices();
+                console.log('[BLE] Devices autorisés:', devices.length);
+                
+                // Chercher le device sauvegardé
+                const savedDevice = devices.find(d => d.id === savedDeviceId);
+                
+                if (!savedDevice) {
+                    console.log('[BLE] Device non trouvé dans les autorisés');
+                    updateUI('disconnected', savedDeviceName || 'Appuyez pour reconnecter');
+                    return false;
+                }
+                
+                console.log('[BLE] Device trouvé, tentative de connexion...');
+                
+                // Tenter la connexion directe
+                try {
+                    await connectToDevice(savedDevice);
+                    showToast('Reconnecté !', 'success');
+                    return true;
+                    
+                } catch (connectError) {
+                    console.log('[BLE] Connexion directe échouée:', connectError.message);
+                    
+                    // Device pas à portée - activer la surveillance
+                    await startWatchingAdvertisements(savedDevice);
+                    
+                    updateUI('disconnected', 'En attente de ' + (savedDeviceName || 'la trottinette'));
+                    if (!silent) {
+                        showToast('Allumez la trottinette à proximité', 'error');
+                    }
+                    return false;
+                }
+                
+            } catch (error) {
+                console.error('[BLE] Erreur reconnexion:', error);
+                state.isConnected = false;
+                
+                if (!silent) {
+                    updateUI('disconnected', savedDeviceName || 'Appuyez pour reconnecter');
+                }
+                
+                return false;
+            }
+        }
+
+        /**
+         * Lance la procédure de connexion
+         * - Si device connu : tente reconnexion directe
+         * - Sinon : affiche popup de sélection
+         */
+        async function connectManually() {
+            if (state.isConnecting) return;
+            
+            state.isConnecting = true;
+            
+            // Si on a un device connu, essayer d'abord la reconnexion rapide
+            if (state.hasKnownDevice && navigator.bluetooth.getDevices) {
+                updateUI('connecting', 'Reconnexion…');
+                
+                try {
+                    const devices = await navigator.bluetooth.getDevices();
+                    const savedDeviceId = getSavedDeviceId();
+                    const knownDevice = devices.find(d => d.id === savedDeviceId);
+                    
+                    if (knownDevice) {
+                        await connectToDevice(knownDevice);
+                        showToast('Reconnecté !', 'success');
+                        return;
+                    }
+                } catch (reconnectError) {
+                    console.log('[BLE] Reconnexion rapide échouée:', reconnectError.message);
+                    // Continuer vers la sélection manuelle
+                }
+            }
+            
+            // Sélection manuelle (popup système)
+            updateUI('connecting', 'Recherche…');
+            
+            try {
+                // Demande de sélection du device (popup système)
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [
+                        { namePrefix: BLE_CONFIG.NAME_PREFIX }
+                    ],
+                    optionalServices: [BLE_CONFIG.SERVICE_UUID]
+                });
+                
+                console.log('[BLE] Device sélectionné:', device.name, device.id);
+                
+                // Sauvegarder le device
+                saveDevice(device);
+                state.hasKnownDevice = true;
+                
+                updateUI('connecting', 'Connexion…');
+                
+                await connectToDevice(device);
+                showToast('Connecté !', 'success');
+                
+            } catch (error) {
+                console.error('[BLE] Erreur connexion:', error);
+                state.isConnecting = false;
+                state.isConnected = false;
+                
+                // L'utilisateur a annulé
+                if (error.name === 'NotFoundError') {
+                    updateUI('disconnected', 'Connexion annulée');
+                    return;
+                }
+                
+                // Trottinette éteinte ou hors de portée
+                if (error.message.includes('connect') || error.name === 'NetworkError') {
+                    updateUI('error', 'Trottinette hors de portée');
+                    showToast('Allumez la trottinette', 'error');
+                } else {
+                    updateUI('error', 'Erreur de connexion');
+                    showToast(error.message, 'error');
+                }
+            }
+        }
+
+        /**
+         * Gère la déconnexion du device
+         */
+        async function onDisconnected() {
+            console.log('[BLE] ⚠️ Déconnecté !');
+            state.isConnected = false;
+            state.isConnecting = false;
+            state.server = null;
+            state.service = null;
+            state.writeCharacteristic = null;
+            
+            const deviceName = getSavedDeviceName() || 'Trottinette';
+            updateUI('disconnected', deviceName + ' - Recherche...');
+            showToast('Connexion perdue - Reconnexion auto...', 'error');
+            
+            // Démarrer le retry automatique (plus fiable que watchAdvertisements)
+            if (state.hasKnownDevice) {
+                console.log('[BLE] Activation reconnexion automatique...');
+                
+                // Méthode 1: Retry polling (plus fiable)
+                startAutoRetry();
+                
+                // Méthode 2: watchAdvertisements (en backup si supporté)
+                if (state.device) {
+                    await startWatchingAdvertisements(state.device);
+                }
+            }
+        }
+
+        /**
+         * Envoie une commande BLE
+         * @param {string} commandHex - Commande en hexadécimal
+         * @param {string} commandName - Nom de la commande pour les logs
+         */
+        async function sendCommand(commandHex, commandName) {
+            if (!state.isConnected || !state.writeCharacteristic) {
+                showToast('Non connecté', 'error');
+                return;
+            }
+            
+            try {
+                console.log(`[BLE] Envoi commande ${commandName}:`, commandHex);
+                
+                const buffer = hexToArrayBuffer(commandHex);
+                await state.writeCharacteristic.writeValueWithoutResponse(buffer);
+                
+                console.log(`[BLE] Commande ${commandName} envoyée avec succès`);
+                showToast(`${commandName} activé !`, 'success');
+                
+            } catch (error) {
+                console.error(`[BLE] Erreur envoi ${commandName}:`, error);
+                showToast(`Erreur: ${error.message}`, 'error');
+                
+                // Si la connexion est perdue
+                if (error.name === 'NetworkError') {
+                    onDisconnected();
+                }
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // EVENT HANDLERS
+        // ─────────────────────────────────────────────────────────────
+        
+        // Bouton Connecter / Arrêter
+        dom.btnConnect.addEventListener('click', () => {
+            // Si recherche en cours → arrêter
+            if (state.retryInterval) {
+                console.log('[BLE] Arrêt de la recherche automatique');
+                stopAutoRetry();
+                stopWatchingAdvertisements();
+                const deviceName = getSavedDeviceName() || 'Trottinette';
+                updateUI('disconnected', deviceName);
+                showToast('Recherche arrêtée', '');
+                return;
+            }
+            
+            // Sinon → connecter
+            connectManually();
+        });
+
+        // Bouton Débridage
+        dom.btnUnlock.addEventListener('click', () => {
+            sendCommand(COMMANDS.UNLOCK, 'Débridage');
+        });
+
+        // Bouton Bridage
+        dom.btnLock.addEventListener('click', () => {
+            sendCommand(COMMANDS.LOCK, 'Bridage');
+        });
+
+        // ─────────────────────────────────────────────────────────────
+        // INITIALISATION
+        // ─────────────────────────────────────────────────────────────
+        
+        async function init() {
+            console.log('[FastBrid] Initialisation...');
+            console.log('[FastBrid] iOS:', isIOS(), '| Bluefy:', isBluefy());
+            console.log('[FastBrid] User Agent:', navigator.userAgent);
+            
+            // Vérifier la disponibilité de Web Bluetooth
+            if (!isWebBluetoothAvailable()) {
+                console.log('[FastBrid] Web Bluetooth NON disponible');
+                
+                // Sur iOS sans Bluefy → afficher le modal explicatif
+                if (isIOS() && !isBluefy()) {
+                    updateUI('error', 'Ouvrir dans Bluefy');
+                    dom.btnConnect.disabled = true;
+                    
+                    // Afficher le modal après un court délai
+                    setTimeout(showBluefyModal, 500);
+                } else {
+                    // Autre navigateur sans support
+                    updateUI('error', 'Bluetooth non supporté');
+                    showToast('Utilisez Chrome Android ou Bluefy iOS', 'error');
+                    dom.btnConnect.disabled = true;
+                }
+                return;
+            }
+            
+            console.log('[FastBrid] Web Bluetooth disponible ✓');
+            
+            // Tenter une reconnexion automatique
+            const reconnected = await tryAutoReconnect();
+            
+            if (!reconnected) {
+                // Afficher l'UI de connexion
+                updateUI('disconnected');
+            }
+        }
+
+        // Lancer l'initialisation au chargement
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Gérer la reprise après mise en arrière-plan
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible') {
+                console.log('[FastBrid] App visible, vérification connexion...');
+                
+                // Si on était connecté mais la connexion est perdue
+                if (state.device && !state.server?.connected) {
+                    console.log('[FastBrid] Connexion perdue, tentative de reconnexion...');
+                    state.isConnected = false;
+                    await tryAutoReconnect();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
