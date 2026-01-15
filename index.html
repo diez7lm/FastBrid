@@ -865,22 +865,20 @@
                             showToast('Reconnecté automatiquement !', 'success');
                             stopAutoRetry();
                             return;
-                        } else {
-                            // Device non trouvé → probablement éteint
-                            updateUI('searching', deviceName + ' - Éteinte ?');
                         }
                     }
                 } catch (error) {
                     console.log('[BLE] Tentative #' + state.retryCount + ' échouée:', error.message);
                     state.isConnecting = false;
-                    
-                    // Device trouvé mais connexion échouée → probablement connectée ailleurs
-                    updateUI('searching', deviceName + ' - Occupée ? (Segway?)');
-                    
-                    // Afficher un toast toutes les 10 tentatives
-                    if (state.retryCount % 10 === 0) {
-                        showToast('💡 Fermez Segway Mobility si ouvert', '');
-                    }
+                }
+                
+                // Connexion échouée → afficher message explicatif
+                // (On ne peut pas distinguer: éteinte / hors portée / connectée ailleurs)
+                updateUI('searching', deviceName + ' introuvable...');
+                
+                // Afficher un toast d'aide toutes les 5 tentatives
+                if (state.retryCount % 5 === 0) {
+                    showToast('Vérifiez: allumée + Segway fermé ?', '');
                 }
             }, RETRY_CONFIG.INTERVAL_MS);
         }
