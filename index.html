@@ -521,8 +521,8 @@
 
         // Configuration retry
         const RETRY_CONFIG = {
-            INTERVAL_MS: 3000,          // Tentative toutes les 3 secondes
-            MAX_RETRIES: 100            // Maximum 100 tentatives (5 minutes)
+            INTERVAL_MS: 2000,          // Tentative toutes les 2 secondes
+            MAX_RETRIES: 9999           // Pas de limite (recherche permanente)
         };
 
         // ─────────────────────────────────────────────────────────────
@@ -903,8 +903,8 @@
             
             // Vérifier si getDevices est supporté
             if (!navigator.bluetooth.getDevices) {
-                console.log('[BLE] getDevices() non supporté - affichage bouton reconnecter');
-                updateUI('disconnected', savedDeviceName || 'Appuyez pour reconnecter');
+                console.log('[BLE] getDevices() non supporté');
+                // On continue quand même, le retry utilisera requestDevice si nécessaire
                 return false;
             }
             
@@ -1023,22 +1023,16 @@
                     return;
                 }
                 
-                // Trottinette éteinte ou hors de portée
-                if (error.message.includes('connect') || error.name === 'NetworkError') {
-                    // Vérifier si c'est probablement une connexion déjà active
-                    if (error.message.includes('busy') || error.message.includes('in progress') || error.message.includes('already')) {
-                        updateUI('error', 'Trott déjà connectée ailleurs');
-                        showToast('⚠️ Fermez Segway Mobility d\'abord !', 'error');
-                    } else {
-                        updateUI('error', 'Trottinette hors de portée');
-                        showToast('Allumez la trottinette', 'error');
-                    }
-                } else if (error.message.includes('GATT') || error.message.includes('connection')) {
-                    updateUI('error', 'Trott déjà connectée ailleurs');
-                    showToast('⚠️ Fermez Segway Mobility d\'abord !', 'error');
+                // Échec de connexion → lancer le retry automatique
+                console.log('[BLE] Échec connexion manuelle, lancement retry auto...');
+                
+                if (state.hasKnownDevice) {
+                    // Lancer la recherche automatique
+                    startAutoRetry();
+                    showToast('Recherche automatique lancée...', '');
                 } else {
-                    updateUI('error', 'Erreur de connexion');
-                    showToast(error.message, 'error');
+                    updateUI('error', 'Connexion échouée');
+                    showToast('Réessayez ou fermez Segway Mobility', 'error');
                 }
             }
         }
@@ -1168,8 +1162,12 @@
             // Tenter une reconnexion automatique
             const reconnected = await tryAutoReconnect();
             
-            if (!reconnected) {
-                // Afficher l'UI de connexion
+            if (!reconnected && state.hasKnownDevice) {
+                // Device connu mais pas connecté → lancer recherche automatique
+                console.log('[FastBrid] Device connu, lancement recherche automatique...');
+                startAutoRetry();
+            } else if (!reconnected) {
+                // Pas de device connu → afficher bouton connexion
                 updateUI('disconnected');
             }
         }
@@ -1182,14 +1180,27 @@
             if (document.visibilityState === 'visible') {
                 console.log('[FastBrid] App visible, vérification connexion...');
                 
+                // Si pas connecté et device connu → relancer la recherche
+                if (!state.isConnected && state.hasKnownDevice && !state.retryInterval) {
+                    console.log('[FastBrid] Relance recherche automatique...');
+                    startAutoRetry();
+                }
                 // Si on était connecté mais la connexion est perdue
-                if (state.device && !state.server?.connected) {
+                else if (state.device && !state.server?.connected && state.isConnected) {
                     console.log('[FastBrid] Connexion perdue, tentative de reconnexion...');
                     state.isConnected = false;
-                    await tryAutoReconnect();
+                    startAutoRetry();
                 }
             }
         });
+        
+        // Vérifier la connexion régulièrement même en arrière-plan (toutes les 30s)
+        setInterval(() => {
+            if (state.hasKnownDevice && !state.isConnected && !state.retryInterval && !state.isConnecting) {
+                console.log('[FastBrid] Check périodique - relance recherche...');
+                startAutoRetry();
+            }
+        }, 30000);
     </script>
 </body>
 </html>
