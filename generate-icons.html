@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur d'icônes FastBrid</title>
+    <style>
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #1a1a28;
+            color: #f0f0f5;
+            padding: 40px;
+            text-align: center;
+        }
+        h1 { margin-bottom: 20px; }
+        .canvas-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        canvas {
+            border-radius: 20px;
+        }
+        .download-btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            background: #4a9eff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .instructions {
+            margin-top: 40px;
+            background: #14141f;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        code {
+            background: #0a0a0f;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Générateur d'icônes FastBrid</h1>
+    <p>Cliquez sur les boutons pour télécharger les icônes</p>
+    
+    <div class="canvas-container">
+        <div>
+            <canvas id="icon192" width="192" height="192"></canvas>
+            <br>
+            <button class="download-btn" onclick="download(192)">📥 icon-192.png</button>
+        </div>
+        <div>
+            <canvas id="icon512" width="512" height="512"></canvas>
+            <br>
+            <button class="download-btn" onclick="download(512)">📥 icon-512.png</button>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>📋 Instructions</h3>
+        <ol>
+            <li>Téléchargez les deux icônes</li>
+            <li>Placez <code>icon-192.png</code> et <code>icon-512.png</code> dans le même dossier que <code>index.html</code></li>
+            <li>Ouvrez <code>index.html</code> dans Safari sur votre iPhone</li>
+            <li>Appuyez sur le bouton Partager → "Sur l'écran d'accueil"</li>
+        </ol>
+    </div>
+
+    <script>
+        function drawIcon(size) {
+            const canvas = document.getElementById(size === 192 ? 'icon192' : 'icon512');
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#1a1a28');
+            gradient.addColorStop(1, '#0a0a0f');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Cercle décoratif
+            ctx.beginPath();
+            ctx.arc(size * 0.5, size * 0.55, size * 0.32, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0, 214, 127, 0.2)';
+            ctx.lineWidth = size * 0.02;
+            ctx.stroke();
+            
+            // Éclair
+            const scale = size / 100;
+            ctx.save();
+            ctx.translate(size * 0.5, size * 0.5);
+            
+            ctx.beginPath();
+            ctx.moveTo(-8 * scale, -25 * scale);
+            ctx.lineTo(8 * scale, -25 * scale);
+            ctx.lineTo(2 * scale, -3 * scale);
+            ctx.lineTo(12 * scale, -3 * scale);
+            ctx.lineTo(-8 * scale, 28 * scale);
+            ctx.lineTo(-2 * scale, 3 * scale);
+            ctx.lineTo(-12 * scale, 3 * scale);
+            ctx.closePath();
+            
+            const boltGradient = ctx.createLinearGradient(0, -25 * scale, 0, 28 * scale);
+            boltGradient.addColorStop(0, '#00d67f');
+            boltGradient.addColorStop(1, '#00b36b');
+            ctx.fillStyle = boltGradient;
+            ctx.fill();
+            
+            // Glow effect
+            ctx.shadowColor = '#00d67f';
+            ctx.shadowBlur = size * 0.1;
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        function download(size) {
+            const canvas = document.getElementById(size === 192 ? 'icon192' : 'icon512');
+            const link = document.createElement('a');
+            link.download = `icon-${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // Dessiner les icônes au chargement
+        drawIcon(192);
+        drawIcon(512);
+    </script>
+</body>
+</html>
+

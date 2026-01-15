@@ -1025,8 +1025,17 @@
                 
                 // Trottinette éteinte ou hors de portée
                 if (error.message.includes('connect') || error.name === 'NetworkError') {
-                    updateUI('error', 'Trottinette hors de portée');
-                    showToast('Allumez la trottinette', 'error');
+                    // Vérifier si c'est probablement une connexion déjà active
+                    if (error.message.includes('busy') || error.message.includes('in progress') || error.message.includes('already')) {
+                        updateUI('error', 'Trott déjà connectée ailleurs');
+                        showToast('⚠️ Fermez Segway Mobility d\'abord !', 'error');
+                    } else {
+                        updateUI('error', 'Trottinette hors de portée');
+                        showToast('Allumez la trottinette', 'error');
+                    }
+                } else if (error.message.includes('GATT') || error.message.includes('connection')) {
+                    updateUI('error', 'Trott déjà connectée ailleurs');
+                    showToast('⚠️ Fermez Segway Mobility d\'abord !', 'error');
                 } else {
                     updateUI('error', 'Erreur de connexion');
                     showToast(error.message, 'error');
