@@ -516,7 +516,8 @@
             hasKnownDevice: false,      // Device déjà autorisé précédemment
             isWatchingAds: false,       // watchAdvertisements actif
             retryInterval: null,        // Intervalle de retry
-            retryCount: 0               // Compteur de tentatives
+            retryCount: 0,              // Compteur de tentatives
+            retryStopped: false         // Recherche arrêtée manuellement
         };
 
         // Configuration retry
@@ -735,6 +736,7 @@
                 
                 state.isConnected = true;
                 state.isConnecting = false;
+                state.retryStopped = false;  // Reset le flag
                 
                 // Arrêter toutes les méthodes de retry
                 stopWatchingAdvertisements();
@@ -1105,7 +1107,8 @@
         dom.btnConnect.addEventListener('click', () => {
             // Si recherche en cours → arrêter
             if (state.retryInterval) {
-                console.log('[BLE] Arrêt de la recherche automatique');
+                console.log('[BLE] Arrêt manuel de la recherche automatique');
+                state.retryStopped = true;  // Marquer comme arrêté manuellement
                 stopAutoRetry();
                 stopWatchingAdvertisements();
                 const deviceName = getSavedDeviceName() || 'Trottinette';
@@ -1114,7 +1117,8 @@
                 return;
             }
             
-            // Sinon → connecter
+            // Sinon → connecter (et réactiver le retry auto)
+            state.retryStopped = false;
             connectManually();
         });
 
@@ -1162,7 +1166,7 @@
             // Tenter une reconnexion automatique
             const reconnected = await tryAutoReconnect();
             
-            if (!reconnected && state.hasKnownDevice) {
+            if (!reconnected && state.hasKnownDevice && !state.retryStopped) {
                 // Device connu mais pas connecté → lancer recherche automatique
                 console.log('[FastBrid] Device connu, lancement recherche automatique...');
                 startAutoRetry();
@@ -1180,8 +1184,8 @@
             if (document.visibilityState === 'visible') {
                 console.log('[FastBrid] App visible, vérification connexion...');
                 
-                // Si pas connecté et device connu → relancer la recherche
-                if (!state.isConnected && state.hasKnownDevice && !state.retryInterval) {
+                // Si pas connecté et device connu et pas arrêté manuellement → relancer la recherche
+                if (!state.isConnected && state.hasKnownDevice && !state.retryInterval && !state.retryStopped) {
                     console.log('[FastBrid] Relance recherche automatique...');
                     startAutoRetry();
                 }
@@ -1189,14 +1193,15 @@
                 else if (state.device && !state.server?.connected && state.isConnected) {
                     console.log('[FastBrid] Connexion perdue, tentative de reconnexion...');
                     state.isConnected = false;
+                    state.retryStopped = false;  // Reset le flag si déconnexion
                     startAutoRetry();
                 }
             }
         });
         
-        // Vérifier la connexion régulièrement même en arrière-plan (toutes les 30s)
+        // Vérifier la connexion régulièrement (toutes les 30s) - seulement si pas arrêté manuellement
         setInterval(() => {
-            if (state.hasKnownDevice && !state.isConnected && !state.retryInterval && !state.isConnecting) {
+            if (state.hasKnownDevice && !state.isConnected && !state.retryInterval && !state.isConnecting && !state.retryStopped) {
                 console.log('[FastBrid] Check périodique - relance recherche...');
                 startAutoRetry();
             }
